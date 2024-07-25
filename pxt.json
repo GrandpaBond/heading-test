@@ -5,7 +5,7 @@
         "core": "*",
         "radio": "*",
         "microphone": "*",
-        "pxt-heading": "github:grandpabond/pxt-heading#v1.1.2"
+        "pxt-heading": "github:grandpabond/pxt-heading#v1.1.6"
     },
     "files": [
         "main.blocks",
