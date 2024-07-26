@@ -134,8 +134,10 @@ function nextConfig() {
     basic.showArrow(ArrowNames.West)
 }
 function loadT07260757() {
-    heading.scanData.push([-25.438, -0.976, 79.456])
+    heading.scanTimes = []
+    heading.scanData = []
     heading.scanTimes.push(9229)
+    heading.scanData.push([-25.438, -0.976, 79.456])
     heading.scanTimes.push(9245)
     heading.scanData.push([-25.404, -0.976, 79.473])
     heading.scanTimes.push(9261)
@@ -1023,6 +1025,9 @@ function loadT07260757() {
     heading.scanData.push([1.122, 3.862, 77.512])
     heading.scanTimes.push(15037)
     heading.scanData.push([1.036, 3.524, 77.613])
+
+    heading.testTimes = []
+    heading.testData = []
     heading.testTimes.push(46461)
     heading.testData.push([1.093, 9.086, 75.514])
     heading.testTimes.push(51833)
