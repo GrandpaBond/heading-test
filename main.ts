@@ -20,6 +20,10 @@ function performSetup() {
             if (config == Config.Analyse) {
                 heading.debugMode = true
                 loadT07260757()
+                nScanTimes = heading.scanTimes.length
+                nScanData = heading.scanData.length
+                nTestTimes = heading.testTimes.length
+                nTestData = heading.testData.length
             } 
             result = heading.scanClockwise(scanTime)
             if (result == 0) {
@@ -114,7 +118,7 @@ function nextConfig() {
         case Config.Live:
             config = Config.Analyse
             heading.debugMode = true
-            basic.showString("A") // preload sample data for debugging...
+            basic.showString("A") // debug preloaded sample data
             break
         case Config.Analyse:
             config = Config.Capture
@@ -1082,8 +1086,6 @@ function loadT07260757() {
     heading.testData.push([-14.743, -5.143, 79.8])
     heading.testTimes.push(223057)
     heading.testData.push([-14.464, -4.8, 79.971])
-    heading.testTimes.push(230709)
-    heading.testData.push([-14.614, -4.907, 79.821])
     heading.testTimes.push(245765)
     heading.testData.push([-17.85, -4.607, 80.079])
     heading.testTimes.push(251481)
@@ -1096,8 +1098,6 @@ function loadT07260757() {
     heading.testData.push([-21.15, -3.9, 80.186])
     heading.testTimes.push(280729)
     heading.testData.push([-21.129, -3.471, 80.464])
-    heading.testTimes.push(287521)
-    heading.testData.push([-21.343, -3.771, 79.95])
     heading.testTimes.push(322345)
     heading.testData.push([-24, -2.186, 79.907])
     heading.testTimes.push(328041)
@@ -1195,6 +1195,13 @@ input.onButtonPressed(Button.B, function () {
 input.onButtonPressed(Button.AB, function () {
     nextConfig()
 })
+
+
+
+let nScanTimes = 0
+let nScanData = 0
+let nTestTimes = 0
+let nTestData = 0
 
 let nextTask: Task
 let config = Config.Capture // --> Config.Analyse when A+B pressed
