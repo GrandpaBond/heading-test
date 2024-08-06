@@ -9,7 +9,7 @@ enum Task {
     SetNorth,
     Measure
 }
-function performSetup() {
+function westButton() {
     let result = 0
     switch (nextTask) {
         case Task.Scan:
@@ -19,16 +19,22 @@ function performSetup() {
             basic.showString("_")
             if (config == Config.Analyse) {
                 heading.debugMode = true
+            //=================
                 loadT07260757()
-                nScanTimes = heading.scanTimes.length
-                nScanData = heading.scanData.length
-                nTestTimes = heading.testTimes.length
-                nTestData = heading.testData.length
+            //=================
             } 
             result = heading.scanClockwise(scanTime)
             if (result == 0) {
                 basic.showIcon(IconNames.Yes)
+                if (config != Config.Analyse) {
+                    // dump successful scan dataset (to be edited later)
+                    logData("scan", heading.testTimes, heading.testData)
+                }
                 basic.pause(1000)
+                basic.clearScreen()
+                basic.showArrow(ArrowNames.West)
+                nextTask = Task.SetNorth
+
             } else {
                 basic.showIcon(IconNames.Skull) // problem with scan data analysis
                 basic.pause(1000)
@@ -38,12 +44,15 @@ function performSetup() {
                 basic.showArrow(ArrowNames.West)
                 nextTask = Task.Scan // restart with a fresh scan
             }
-            basic.clearScreen()
-            basic.showArrow(ArrowNames.West)
-            nextTask = Task.SetNorth
             break
 
         case Task.SetNorth:
+            if (config == Config.Analyse) {
+                // dump derived Ellipse properties
+                logEllipses("scan", heading.xy)
+                logEllipses("scan", heading.yz)
+                logEllipses("scan", heading.zx)
+            }
             basic.showString("N")
             basic.pause(1000)
             basic.clearScreen()
@@ -76,11 +85,11 @@ function performSetup() {
 
 }
 
-function measure() {
+function eastButton() {
     switch (nextTask) {
         // ? sequence error?
         case Task.SetNorth:
-        case Task.Scan: // use button A to do a scan first
+        case Task.Scan: // NO! -use button A to do a scan first!
             for (let i = 0; i < 5; i++) {
                 basic.clearScreen()
                 basic.pause(100)
@@ -94,6 +103,9 @@ function measure() {
             basic.pause(50)
             let compass = heading.degrees()
             basic.showNumber(Math.floor(compass))
+            if (config == Config.Analyse) {
+                logTest()
+            }
             basic.pause(500)
             // now MANUALLY move to next test-angle...
             basic.showLeds(`
@@ -109,8 +121,8 @@ function measure() {
 
 }
 
-// rotate three-state configuration 
-function nextConfig() {
+// rotate between three states Capture -> Analysis -> Live -> Capture...
+function bothButtons() {
     basic.showIcon(IconNames.No)
     basic.pause(500)
     basic.clearScreen()
@@ -118,17 +130,23 @@ function nextConfig() {
         case Config.Live:
             config = Config.Analyse
             heading.debugMode = true
-            basic.showString("A") // debug preloaded sample data
+            basic.showString("A") // debug a pre-loaded sample dataset
             break
         case Config.Analyse:
             config = Config.Capture
             heading.debugMode = false
-            basic.showString("C") // no buggy, but use live magnetometer
+            basic.showString("C") // live operation; new data-set logged
             break
         case Config.Capture:
+            // finished capturing test samples: dump collected scan dataset and test data
+            logData("scan", heading.testTimes, heading.testData)
+            logData("test", heading.testTimes, heading.testData)
+            basic.showIcon(IconNames.Yes)
+            basic.pause(1000)
+
             config = Config.Live
             heading.debugMode = false
-            basic.showString("L")  // normal live operation
+            basic.showString("L")  // live operation; with detailed logging
             break
     }
     basic.pause(1000)
@@ -137,6 +155,40 @@ function nextConfig() {
     nextTask = Task.Scan // new mode, so always start with a scan
     basic.showArrow(ArrowNames.West)
 }
+
+// Emit code to build an array of data, one element at a time
+// (tag will be either "scan" or "test")
+function logData(tag: string, times: number[], values: number[][]) {
+    let pushT: string
+    let pushD: string
+    tag = "heading." + tag
+    for (let i = 1; i < times.length; i++) {
+        pushT = tag + "Times.push(" + times[i] + ")"
+        dataLogger.log(dataLogger.createCV("", pushT))
+        pushD = tag + "Data.push([" + round3(values[i][Dimension.X])
+        pushD += ", " + round3(values[i][Dimension.Y])
+        pushD += ", " + round3(values[i][Dimension.Z])
+        datalogger.log(datalogger.createCV("", pushD + "])"))
+    }
+}
+
+// log the derived properties of an Ellipse
+// (tag will be either "XY", "YZ", or "ZX")
+function logEllipses(tag: string, view: heading.Ellipse){
+
+}
+
+// log what we know about this test-point
+function logTest() {
+    //
+}
+
+// limit to three decimal places
+function round3(v: number): number {
+    return (Math.round(1000 * v) / 1000)
+}
+
+
 function loadT07260757() {
     heading.scanTimes = []
     heading.scanData = []
@@ -1185,15 +1237,15 @@ function loadT07260757() {
 }
 
 input.onButtonPressed(Button.A, function () {
-    performSetup()
+    westButton()
 })
 
 input.onButtonPressed(Button.B, function () {
-    measure()
+    eastButton()
 })
 
 input.onButtonPressed(Button.AB, function () {
-    nextConfig()
+    bothButtons()
 })
 
 
